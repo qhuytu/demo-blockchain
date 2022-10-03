@@ -4,12 +4,13 @@ import java.security.Security;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DemoChain {
     public static List<Block> blockchain = new ArrayList<>();
     public static HashMap<String,TransactionOutput> UTXOs = new HashMap<String,TransactionOutput>();
 
-    public static int difficulty = 3;
+    public static int difficulty = 4;
     public static float minimumTransaction = 0.1f;
     public static Wallet walletA;
     public static Wallet walletB;
@@ -22,35 +23,35 @@ public class DemoChain {
         walletB = new Wallet();
         Wallet coinbase = new Wallet();
 
-        genesisTransaction = new Transaction(coinbase.publicKey, walletA.publicKey, 100f, null);
+        genesisTransaction = new Transaction(coinbase.publicKey, walletA.publicKey, 1000f, null);
         genesisTransaction.generateSignature(coinbase.privateKey);
         genesisTransaction.transactionId = "0";
         genesisTransaction.outputs.add(new TransactionOutput(genesisTransaction.reciepient, genesisTransaction.value, genesisTransaction.transactionId));
         UTXOs.put(genesisTransaction.outputs.get(0).id, genesisTransaction.outputs.get(0));
 
         System.out.println("Creating and Mining Genesis block... ");
-        Block genesis = new Block("0");
-        genesis.addTransaction(genesisTransaction);
-        addBlock(genesis);
+        Block firstBlock = new Block("0");
+        firstBlock.addTransaction(genesisTransaction);
+        addBlock(firstBlock);
 
-        Block block1 = new Block(genesis.hash);
+        Block block1 = new Block(firstBlock.hash);
         System.out.println("\nWalletA's balance is: " + walletA.getBalance());
-        System.out.println("\nWalletA is Attempting to send funds (40) to WalletB...");
-        block1.addTransaction(walletA.sendFunds(walletB.publicKey, 40f));
+        System.out.println("\nWalletA is Attempting to send funds (200) to WalletB...");
+        block1.addTransaction(walletA.sendFunds(walletB.publicKey, 200f));
         addBlock(block1);
         System.out.println("\nWalletA's balance is: " + walletA.getBalance());
         System.out.println("WalletB's balance is: " + walletB.getBalance());
 
         Block block2 = new Block(block1.hash);
-        System.out.println("\nWalletA Attempting to send more funds (1000) than it has...");
-        block2.addTransaction(walletA.sendFunds(walletB.publicKey, 1000f));
+        System.out.println("\nWalletA Attempting to send more funds (2000) than it has...");
+        block2.addTransaction(walletA.sendFunds(walletB.publicKey, 2000f));
         addBlock(block2);
         System.out.println("\nWalletA's balance is: " + walletA.getBalance());
         System.out.println("WalletB's balance is: " + walletB.getBalance());
 
         Block block3 = new Block(block2.hash);
-        System.out.println("\nWalletB is Attempting to send funds (20) to WalletA...");
-        block3.addTransaction(walletB.sendFunds( walletA.publicKey, 20));
+        System.out.println("\nWalletB is Attempting to send funds (110) to WalletA...");
+        block3.addTransaction(walletB.sendFunds(walletA.publicKey, 110f));
         System.out.println("\nWalletA's balance is: " + walletA.getBalance());
         System.out.println("WalletB's balance is: " + walletB.getBalance());
 
@@ -62,7 +63,7 @@ public class DemoChain {
         Block currentBlock;
         Block previousBlock;
         String hashTarget = new String(new char[difficulty]).replace('\0', '0');
-        HashMap<String,TransactionOutput> tempUTXOs = new HashMap<String,TransactionOutput>(); //a temporary working list of unspent transactions at a given block state.
+        Map<String,TransactionOutput> tempUTXOs = new HashMap<>();
         tempUTXOs.put(genesisTransaction.outputs.get(0).id, genesisTransaction.outputs.get(0));
 
         for(int i=1; i < blockchain.size(); i++) {
