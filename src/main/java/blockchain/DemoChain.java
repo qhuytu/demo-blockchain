@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class DemoChain {
     public static List<Block> blockchain = new ArrayList<>();
-    public static HashMap<String,TransactionOutput> UTXOs = new HashMap<String,TransactionOutput>();
+    public static Map<String, TransactionOutput> UTXOs = new HashMap<>();
 
     public static int difficulty = 4;
     public static float minimumTransaction = 0.1f;
@@ -63,48 +63,48 @@ public class DemoChain {
         Block currentBlock;
         Block previousBlock;
         String hashTarget = new String(new char[difficulty]).replace('\0', '0');
-        Map<String,TransactionOutput> tempUTXOs = new HashMap<>();
+        Map<String, TransactionOutput> tempUTXOs = new HashMap<>();
         tempUTXOs.put(genesisTransaction.outputs.get(0).id, genesisTransaction.outputs.get(0));
 
-        for(int i=1; i < blockchain.size(); i++) {
+        for (int i = 1; i < blockchain.size(); i++) {
 
             currentBlock = blockchain.get(i);
-            previousBlock = blockchain.get(i-1);
-            if(!currentBlock.hash.equals(currentBlock.calculateHash()) ){
+            previousBlock = blockchain.get(i - 1);
+            if (!currentBlock.hash.equals(currentBlock.calculateHash())) {
                 System.out.println("#Current Hashes not equal");
                 return false;
             }
-            if(!previousBlock.hash.equals(currentBlock.previousHash) ) {
+            if (!previousBlock.hash.equals(currentBlock.previousHash)) {
                 System.out.println("#Previous Hashes not equal");
                 return false;
             }
-            if(!currentBlock.hash.substring( 0, difficulty).equals(hashTarget)) {
+            if (!currentBlock.hash.substring(0, difficulty).equals(hashTarget)) {
                 System.out.println("#This block hasn't been mined");
                 return false;
             }
 
             TransactionOutput tempOutput;
-            for(int t=0; t <currentBlock.transactions.size(); t++) {
+            for (int t = 0; t < currentBlock.transactions.size(); t++) {
                 Transaction currentTransaction = currentBlock.transactions.get(t);
 
-                if(!currentTransaction.isSignatureValid()) {
+                if (!currentTransaction.isSignatureValid()) {
                     System.out.println("#Signature on Transaction(" + t + ") is Invalid");
                     return false;
                 }
-                if(currentTransaction.getInputsValue() != currentTransaction.getOutputsValue()) {
+                if (currentTransaction.getInputsValue() != currentTransaction.getOutputsValue()) {
                     System.out.println("#Inputs are note equal to outputs on Transaction(" + t + ")");
                     return false;
                 }
 
-                for(TransactionInput input: currentTransaction.inputs) {
+                for (TransactionInput input : currentTransaction.inputs) {
                     tempOutput = tempUTXOs.get(input.transactionOutputId);
 
-                    if(tempOutput == null) {
+                    if (tempOutput == null) {
                         System.out.println("#Referenced input on Transaction(" + t + ") is Missing");
                         return false;
                     }
 
-                    if(input.UTXO.value != tempOutput.value) {
+                    if (input.UTXO.value != tempOutput.value) {
                         System.out.println("#Referenced input Transaction(" + t + ") value is Invalid");
                         return false;
                     }
@@ -112,15 +112,15 @@ public class DemoChain {
                     tempUTXOs.remove(input.transactionOutputId);
                 }
 
-                for(TransactionOutput output: currentTransaction.outputs) {
+                for (TransactionOutput output : currentTransaction.outputs) {
                     tempUTXOs.put(output.id, output);
                 }
 
-                if( currentTransaction.outputs.get(0).reciepient != currentTransaction.reciepient) {
+                if (currentTransaction.outputs.get(0).reciepient != currentTransaction.reciepient) {
                     System.out.println("#Transaction(" + t + ") output reciepient is not who it should be");
                     return false;
                 }
-                if( currentTransaction.outputs.get(1).reciepient != currentTransaction.sender) {
+                if (currentTransaction.outputs.get(1).reciepient != currentTransaction.sender) {
                     System.out.println("#Transaction(" + t + ") output 'change' is not sender.");
                     return false;
                 }
